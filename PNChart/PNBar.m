@@ -21,7 +21,7 @@
 - (id)initWithFrame:(CGRect)frame
 {
     self = [super initWithFrame:frame];
-
+    
     if (self) {
         _chartLine              = [CAShapeLayer layer];
         _chartLine.lineCap      = kCALineCapButt;
@@ -32,7 +32,7 @@
         [self.layer addSublayer:_chartLine];
         self.barRadius = 2.0;
     }
-
+    
     return self;
 }
 
@@ -47,24 +47,24 @@
 {
     _copyGrade = grade;
     CGFloat startPosY = (1 - grade) * self.frame.size.height;
-
+    
     UIBezierPath *progressline = [UIBezierPath bezierPath];
-
+    
     [progressline moveToPoint:CGPointMake(self.frame.size.width / 2.0, self.frame.size.height)];
     [progressline addLineToPoint:CGPointMake(self.frame.size.width / 2.0, startPosY)];
-
+    
     [progressline setLineWidth:1.0];
     [progressline setLineCapStyle:kCGLineCapSquare];
     [self addAnimationIfNeededWithProgressLine:progressline];
-
-
+    
+    
     if (_barColor) {
         _chartLine.strokeColor = [_barColor CGColor];
     }
     else {
         _chartLine.strokeColor = [PNGreen CGColor];
     }
-
+    
     if (_grade) {
         
         _chartLine.path = progressline.CGPath;
@@ -73,10 +73,10 @@
             
             // Add gradient
             self.gradientMask.path = progressline.CGPath;
-  
+            
             CABasicAnimation* opacityAnimation = [self fadeAnimation];
             [self.textLayer addAnimation:opacityAnimation forKey:nil];
-
+            
         }
         
     }else{
@@ -96,12 +96,12 @@
             
             CAGradientLayer *gradientLayer = [CAGradientLayer layer];
             gradientLayer.startPoint = CGPointMake(0.0,0.0);
-            gradientLayer.endPoint = CGPointMake(1.0 ,0.0);
+            gradientLayer.endPoint = CGPointMake(0.0 ,1.0);
             gradientLayer.frame = CGRectMake(0, 0, self.bounds.size.width, self.bounds.size.height);
             UIColor *middleColor = [UIColor colorWithWhite:255/255 alpha:0.8];
             NSArray *colors = @[
-                                (__bridge id)self.barColor.CGColor,
                                 (__bridge id)middleColor.CGColor,
+                                (__bridge id)self.barColor.CGColor,
                                 (__bridge id)self.barColor.CGColor
                                 ];
             gradientLayer.colors = colors;
@@ -111,14 +111,14 @@
             [_chartLine addSublayer:gradientLayer];
             
             self.gradientMask.strokeEnd = 1.0;
-
+            
             CABasicAnimation* opacityAnimation = [self fadeAnimation];
             [self.textLayer addAnimation:opacityAnimation forKey:nil];
         }
     }
     
     _grade = grade;
-
+    
 }
 
 
@@ -136,9 +136,9 @@
         [sublayer removeFromSuperlayer];
     }
     _barColorGradientStart = barColorGradientStart;
-
+    
     [self setGrade:_grade];
-
+    
 }
 
 // Only override drawRect: if you perform custom drawing.
@@ -146,7 +146,7 @@
 - (void)drawRect:(CGRect)rect
 {
     CGContextRef context = UIGraphicsGetCurrentContext();
-
+    
     CGContextSetFillColorWithColor(context, self.backgroundColor.CGColor);
     CGContextFillRect(context, rect);
 }
@@ -165,10 +165,10 @@
         [_textLayer setString:@"0"];
         [_textLayer setAlignmentMode:kCAAlignmentCenter];
         [_textLayer setForegroundColor:[_labelTextColor CGColor]];
-       _textLayer.hidden = YES;
-
+        _textLayer.hidden = YES;
+        
     }
-
+    
     return _textLayer;
 }
 
@@ -180,54 +180,56 @@
 -(void)setGradeFrame:(CGFloat)grade startPosY:(CGFloat)startPosY
 {
     CGFloat textheigt = self.bounds.size.height*self.grade;
-  
+    
     CGFloat topSpace = self.bounds.size.height * (1-self.grade);
     CGFloat textWidth = self.bounds.size.width;
-  
+    
     [_chartLine addSublayer:self.textLayer];
     [self.textLayer setFontSize:18.0];
-  
+    
     [self.textLayer setString:[[NSString alloc]initWithFormat:@"%0.f",grade*self.maxDivisor]];
-  
-    CGSize size = CGSizeMake(320,2000); //设置一个行高上限
-    NSDictionary *attributes = @{NSFontAttributeName:[UIFont systemFontOfSize:18.0]};
-    size = [self.textLayer.string boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:nil].size;
-    float verticalY ;
-  
-    if (size.height>=textheigt) {
-      
-      verticalY = topSpace - size.height;
-    } else {
-      verticalY = topSpace +  (textheigt-size.height)/2.0;
-    }
-  
-    [self.textLayer setFrame:CGRectMake((textWidth-size.width)/2.0,verticalY, size.width,size.height)];
-    self.textLayer.contentsScale = [UIScreen mainScreen].scale;
-
-}
-
-- (void)setIsShowNumber:(BOOL)isShowNumber{
-  if (isShowNumber) {
-    self.textLayer.hidden = NO;
-    [self setGradeFrame:_copyGrade startPosY:0];
-  }else{
-    self.textLayer.hidden = YES;
-  }
-}
-- (void)setIsNegative:(BOOL)isNegative{
-  if (isNegative) {
-    [self.textLayer setString:[[NSString alloc]initWithFormat:@"- %1.f",_grade*self.maxDivisor]];
     
     CGSize size = CGSizeMake(320,2000); //设置一个行高上限
     NSDictionary *attributes = @{NSFontAttributeName:[UIFont systemFontOfSize:18.0]};
     size = [self.textLayer.string boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:nil].size;
-    CGRect frame = self.textLayer.frame;
-    frame.origin.x = (self.bounds.size.width - size.width)/2.0;
-    frame.size = size;
-    self.textLayer.frame = frame;
-      
-    [self addRotationAnimationIfNeeded];
-  }
+    float verticalY ;
+    
+    if (size.height>=textheigt) {
+        
+        //      verticalY = topSpace - size.height;
+        verticalY = topSpace - 25;
+    } else {
+        verticalY = topSpace - 25;
+        //      verticalY = topSpace +  (textheigt-size.height)/2.0;
+    }
+    
+    [self.textLayer setFrame:CGRectMake((textWidth-size.width)/2.0,verticalY, size.width,size.height)];
+    self.textLayer.contentsScale = [UIScreen mainScreen].scale;
+    
+}
+
+- (void)setIsShowNumber:(BOOL)isShowNumber{
+    if (isShowNumber) {
+        self.textLayer.hidden = NO;
+        [self setGradeFrame:_copyGrade startPosY:0];
+    }else{
+        self.textLayer.hidden = YES;
+    }
+}
+- (void)setIsNegative:(BOOL)isNegative{
+    if (isNegative) {
+        [self.textLayer setString:[[NSString alloc]initWithFormat:@"- %1.f",_grade*self.maxDivisor]];
+        
+        CGSize size = CGSizeMake(320,2000); //设置一个行高上限
+        NSDictionary *attributes = @{NSFontAttributeName:[UIFont systemFontOfSize:18.0]};
+        size = [self.textLayer.string boundingRectWithSize:size options:NSStringDrawingUsesLineFragmentOrigin attributes:attributes context:nil].size;
+        CGRect frame = self.textLayer.frame;
+        frame.origin.x = (self.bounds.size.width - size.width)/2.0;
+        frame.size = size;
+        self.textLayer.frame = frame;
+        
+        [self addRotationAnimationIfNeeded];
+    }
 }
 
 -(CABasicAnimation*)fadeAnimation
